@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusERP — Enterprise Resource Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface2: #f8f9fb;
+    --surface3: #eef0f4;
+    --border: #e2e5ec;
+    --border2: #d0d4de;
+    --text: #0f1117;
+    --text2: #5a6070;
+    --text3: #98a0b0;
+    --primary: #3b5bdb;
+    --primary-light: #eef1ff;
+    --primary-mid: #748ffc;
+    --accent: #0ca678;
+    --accent-light: #e6fcf5;
+    --warn: #e67700;
+    --warn-light: #fff3bf;
+    --danger: #c92a2a;
+    --danger-light: #ffe3e3;
+    --purple: #7048e8;
+    --purple-light: #f3f0ff;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+    --sidebar-w: 240px;
+    --header-h: 58px;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --surface2: #1c1f28;
+    --surface3: #242836;
+    --border: #2a2f3e;
+    --border2: #363d52;
+    --text: #e8eaf0;
+    --text2: #8b93a8;
+    --text3: #555e72;
+    --primary: #748ffc;
+    --primary-light: #1a2040;
+    --primary-mid: #4c6ef5;
+    --accent: #20c997;
+    --accent-light: #0a2b22;
+    --warn: #fcc419;
+    --warn-light: #2a2000;
+    --danger: #ff6b6b;
+    --danger-light: #2d0f0f;
+    --purple: #9775fa;
+    --purple-light: #1e1530;
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.2);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.4), 0 1px 4px rgba(0,0,0,.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); font-size: 14px; background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 100; transition: transform .25s;
+  }
+  .sidebar-logo {
+    padding: 18px 20px 14px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-icon {
+    width: 34px; height: 34px; border-radius: 9px; background: var(--primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .logo-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -.3px; color: var(--text); }
+  .logo-text span { color: var(--primary); }
+  .nav-section { padding: 8px 12px 4px; font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text3); }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius);
+    margin: 1px 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--text2);
+    transition: all .15s; user-select: none;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary); }
+  .nav-item .nav-icon { width: 18px; height: 18px; opacity: .7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+  .sidebar-footer { margin-top: auto; padding: 12px 8px; border-top: 1px solid var(--border); }
+  /* HEADER */
+  .header {
+    position: fixed; left: var(--sidebar-w); right: 0; top: 0; height: var(--header-h);
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 99;
+  }
+  .header-title { font-size: 16px; font-weight: 600; color: var(--text); flex: 1; }
+  .header-search {
+    display: flex; align-items: center; gap: 8px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px;
+    width: 260px; font-size: 13px; color: var(--text2); cursor: text;
+  }
+  .header-search svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .hbtn {
+    width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; transition: background .15s; flex-shrink: 0;
+  }
+  .hbtn:hover { background: var(--surface2); }
+  .hbtn svg { width: 18px; height: 18px; }
+  .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--surface); }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--primary);
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0;
+  }
+  .role-select {
+    font-family: var(--font); font-size: 12.5px; font-weight: 500; color: var(--text2);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; cursor: pointer; appearance: none; padding-right: 24px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2398a0b0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+  }
+  /* MAIN */
+  .main { margin-left: var(--sidebar-w); margin-top: var(--header-h); padding: 28px; min-height: calc(100vh - var(--header-h)); }
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+  .card-header { padding: 18px 20px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+  .card-body { padding: 20px; }
+  /* KPI */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow); padding: 20px; position: relative; overflow: hidden;
+  }
+  .kpi-card::after { content: ''; position: absolute; right: -20px; top: -20px; width: 80px; height: 80px; border-radius: 50%; opacity: .07; }
+  .kpi-card.blue::after { background: var(--primary); }
+  .kpi-card.green::after { background: var(--accent); }
+  .kpi-card.purple::after { background: var(--purple); }
+  .kpi-card.warn::after { background: var(--warn); }
+  .kpi-card.danger::after { background: var(--danger); }
+  .kpi-label { font-size: 12px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .kpi-value { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -.5px; line-height: 1; }
+  .kpi-change { font-size: 12px; font-weight: 500; margin-top: 8px; }
+  .kpi-change.up { color: var(--accent); }
+  .kpi-change.down { color: var(--danger); }
+  .kpi-icon { position: absolute; right: 18px; top: 18px; width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .kpi-icon.blue { background: var(--primary-light); }
+  .kpi-icon.green { background: var(--accent-light); }
+  .kpi-icon.purple { background: var(--purple-light); }
+  .kpi-icon.warn { background: var(--warn-light); }
+  .kpi-icon.danger { background: var(--danger-light); }
+  .kpi-icon svg { width: 16px; height: 16px; }
+  /* GRIDS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-main-side { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+  /* TABLES */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; font-size: 13.5px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  td strong { color: var(--text); font-weight: 500; }
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+  .badge-green { background: var(--accent-light); color: var(--accent); }
+  .badge-warn { background: var(--warn-light); color: var(--warn); }
+  .badge-danger { background: var(--danger-light); color: var(--danger); }
+  .badge-blue { background: var(--primary-light); color: var(--primary); }
+  .badge-purple { background: var(--purple-light); color: var(--purple); }
+  .badge-gray { background: var(--surface3); color: var(--text2); }
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-family: var(--font); font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { opacity: .9; }
+  .btn-outline { background: var(--surface); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-outline:hover { background: var(--surface2); color: var(--text); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  /* PROGRESS */
+  .progress-bar { height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+  /* ACTIVITY */
+  .activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .activity-time { font-size: 11.5px; color: var(--text3); white-space: nowrap; }
+  /* KANBAN */
+  .kanban { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 4px; }
+  .kanban-col { min-width: 240px; flex: 1; }
+  .kanban-col-header { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .kanban-col-header .count { background: var(--surface3); color: var(--text3); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
+  .kanban-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s; }
+  .kanban-card:hover { box-shadow: var(--shadow-md); }
+  .kanban-card-title { font-size: 13.5px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .kanban-card-sub { font-size: 12px; color: var(--text3); }
+  .kanban-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  /* AI WIDGET */
+  .ai-widget { background: linear-gradient(135deg, #1e2d6b 0%, #2d1b5e 100%); border-radius: var(--radius-lg); padding: 20px; color: #fff; }
+  [data-theme="dark"] .ai-widget { background: linear-gradient(135deg, #1a2550 0%, #261545 100%); }
+  .ai-widget h3 { font-size: 13px; font-weight: 600; opacity: .7; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px; }
+  .ai-insight { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .ai-insight:last-child { border-bottom: none; }
+  .ai-insight-icon { font-size: 16px; }
+  .ai-insight-text { font-size: 13px; line-height: 1.5; opacity: .9; }
+  /* NOTIFICATIONS DROPDOWN */
+  .notif-dropdown {
+    position: absolute; top: calc(100% + 8px); right: 0; width: 320px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md); z-index: 200; display: none;
+  }
+  .notif-dropdown.open { display: block; }
+  .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; cursor: pointer; }
+  .notif-item:hover { background: var(--surface2); }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+  .notif-item-dot.read { background: var(--border); }
+  .notif-item-text { font-size: 13px; color: var(--text2); line-height: 1.4; }
+  .notif-item-time { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  /* STOCK INDICATORS */
+  .stock-level { display: flex; align-items: center; gap: 8px; }
+  .stock-bar { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+  .stock-fill-high { height: 100%; background: var(--accent); border-radius: 3px; }
+  .stock-fill-med { height: 100%; background: var(--warn); border-radius: 3px; }
+  .stock-fill-low { height: 100%; background: var(--danger); border-radius: 3px; }
+  /* EMPLOYEE AVATAR */
+  .emp-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; color: #fff; }
+  /* FILTER ROW */
+  .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filter-input { font-family: var(--font); font-size: 13px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; outline: none; }
+  .filter-input:focus { border-color: var(--primary); }
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 10px 16px; font-size: 13.5px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  /* MODULE PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+  /* HEADER SECTION */
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .section-header h2 { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -.3px; flex: 1; }
+  /* VENDOR / EMPLOYEE CARD */
+  .entity-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; display: flex; align-items: flex-start; gap: 14px; }
+  .entity-info h4 { font-size: 14px; font-weight: 600; color: var(--text); }
+  .entity-info p { font-size: 12.5px; color: var(--text3); margin-top: 2px; }
+  .entity-meta { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  /* PAYROLL */
+  .payroll-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .payroll-dept { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; margin-bottom: 4px; }
+  .payroll-amount { font-size: 22px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .grid-main-side { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { transform: translateX(-240px); --sidebar-w: 240px; }
+    .sidebar.open { transform: translateX(0); }
+    .header { left: 0; }
+    .main { margin-left: 0; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .header-search { display: none; }
+    .hamburger { display: flex !important; }
+  }
+  .hamburger { display: none; width: 36px; height: 36px; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; }
+  .hamburger:hover { background: var(--surface2); }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99; }
+  .overlay.open { display: block; }
+  /* CHART COLORS */
+  .chart-container { position: relative; width: 100%; }
+  /* TOOLTIP */
+  [title] { cursor: help; }
+  /* STATUS PILL */
+  .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
+  .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .status-active::before { background: var(--accent); }
+  .status-pending::before { background: var(--warn); }
+  .status-inactive::before { background: var(--text3); }
+  /* TIMELINE */
+  .timeline-item { display: flex; gap: 16px; padding: 0 0 20px; position: relative; }
+  .timeline-item::before { content: ''; position: absolute; left: 15px; top: 26px; bottom: 0; width: 1px; background: var(--border); }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+  /* CHART WRAPPER */
+  .chart-h240 { position: relative; height: 240px; }
+  .chart-h200 { position: relative; height: 200px; }
+  .chart-h180 { position: relative; height: 180px; }
+</style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </div>
+    <div class="logo-text">Nexus<span>ERP</span></div>
+  </div>
+
+  <div style="overflow-y:auto;flex:1;padding:8px 0;">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+
+    <div class="nav-section">Core Modules</div>
+    <div class="nav-item" onclick="nav('finance',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Finance
+    </div>
+    <div class="nav-item" onclick="nav('sales',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      Sales & CRM
+    </div>
+    <div class="nav-item" onclick="nav('inventory',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      Inventory
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" onclick="nav('hr',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      HR Management
+    </div>
+    <div class="nav-item" onclick="nav('procurement',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Procurement
+    </div>
+    <div class="nav-item" onclick="nav('reports',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><bar chart icon><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="4" width="4" height="17"/><line x1="2" y1="21" x2="22" y2="21"/></svg>
+      Reports
+    </div>
+
+    <div class="nav-section">Settings</div>
+    <div class="nav-item" onclick="nav('settings',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="nav-item" style="color:var(--text2);">
+      <div class="emp-avatar" style="width:28px;height:28px;font-size:11px;background:var(--primary);">JD</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">John Doe</div>
+        <div style="font-size:11px;color:var(--text3);">Administrator</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </div>
+  <div class="header-title" id="headerTitle">Dashboard</div>
+  <div class="header-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Search anything...
+    <span style="margin-left:auto;font-size:11px;color:var(--text3);background:var(--surface3);padding:2px 6px;border-radius:4px;">⌘K</span>
+  </div>
+  <select class="role-select" onchange="switchRole(this.value)">
+    <option value="admin">👤 Admin</option>
+    <option value="manager">👤 Manager</option>
+    <option value="employee">👤 Employee</option>
+  </select>
+  <div class="hbtn" id="notifBtn" onclick="toggleNotif()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--text2)"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <div class="notif-dot"></div>
+    <div class="notif-dropdown" id="notifDropdown">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        Notifications <span style="color:var(--primary);font-size:12px;cursor:pointer;">Mark all read</span>
+      </div>
+      <div class="notif-item"><div class="notif-item-dot"></div><div><div class="notif-item-text">Low stock alert: iPhone 15 Pro (3 units left)</div><div class="notif-item-time">2 minutes ago</div></div></div>
+      <div class="notif-item"><div class="notif-item-dot"></div><div><div class="notif-item-text">Invoice #INV-2401 marked as overdue</div><div class="notif-item-time">1 hour ago</div></div></div>
+      <div class="notif-item"><div class="notif-item-dot"></div><div><div class="notif-item-text">New purchase request from Marketing Dept</div><div class="notif-item-time">3 hours ago</div></div></div>
+      <div class="notif-item"><div class="notif-item-dot read"></div><div><div class="notif-item-text">Payroll processing complete for November</div><div class="notif-item-time">Yesterday</div></div></div>
+      <div class="notif-item"><div class="notif-item-dot read"></div><div><div class="notif-item-text">Sarah Chen's leave request approved</div><div class="notif-item-time">2 days ago</div></div></div>
+    </div>
+  </div>
+  <div class="hbtn" onclick="toggleDark()" title="Toggle dark mode">
+    <svg id="darkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--text2)"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </div>
+  <div class="avatar">JD</div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<!-- ========== DASHBOARD ========== -->
+<div class="page active" id="page-dashboard">
+  <div class="section-header">
+    <h2>Good morning, John 👋</h2>
+    <span style="font-size:13px;color:var(--text3);">Monday, 4 May 2026</span>
+    <button class="btn btn-primary btn-sm" style="margin-left:auto;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Report
+    </button>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value">$4.82M</div>
+      <div class="kpi-change up">↑ 14.2% vs last month</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+      <div class="kpi-label">Net Profit</div>
+      <div class="kpi-value">$1.29M</div>
+      <div class="kpi-change up">↑ 8.7% vs last month</div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-icon warn"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value">3,847</div>
+      <div class="kpi-change up">↑ 5.1% vs last month</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="kpi-label">Employees</div>
+      <div class="kpi-value">142</div>
+      <div class="kpi-change up">↑ 3 new this month</div>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-icon danger"><svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="kpi-label">Expenses</div>
+      <div class="kpi-value">$3.53M</div>
+      <div class="kpi-change down">↑ 2.3% vs last month</div>
+    </div>
+  </div>
+
+  <div class="grid-main-side" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Revenue & Expenses (2025)</div>
+        <div style="display:flex;gap:10px;">
+          <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);"><span style="width:10px;height:10px;background:#3b5bdb;border-radius:2px;display:inline-block;"></span>Revenue</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);"><span style="width:10px;height:10px;background:#c92a2a;border-radius:2px;display:inline-block;"></span>Expenses</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-h240"><canvas id="revenueChart" role="img" aria-label="Monthly revenue and expenses bar chart for 2025">Monthly revenue and expenses data for 2025.</canvas></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <div class="ai-widget">
+        <h3>🤖 AI Insights</h3>
+        <div class="ai-insight">
+          <div class="ai-insight-icon">📈</div>
+          <div class="ai-insight-text">Sales increased <strong>12%</strong> this month, driven by electronics category surge.</div>
+        </div>
+        <div class="ai-insight">
+          <div class="ai-insight-icon">⚠️</div>
+          <div class="ai-insight-text">3 vendors at risk of delayed delivery. Consider sourcing alternatives.</div>
+        </div>
+        <div class="ai-insight">
+          <div class="ai-insight-icon">💡</div>
+          <div class="ai-insight-text">Cash flow projection shows 18% runway improvement next quarter.</div>
+        </div>
+        <div class="ai-insight">
+          <div class="ai-insight-icon">🎯</div>
+          <div class="ai-insight-text">Q2 target 94% complete — on track to exceed by $180K.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Sales by Category</div></div>
+        <div class="card-body">
+          <div class="chart-h180"><canvas id="pieChart" role="img" aria-label="Sales distribution by product category">Electronics 38%, Apparel 22%, Home 18%, Software 14%, Other 8%.</canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Recent Activity</div>
+        <button class="btn btn-outline btn-sm">View all</button>
+      </div>
+      <div class="card-body" style="padding:0 20px;">
+        <div class="activity-item">
+          <div class="activity-dot" style="background:var(--accent)"></div>
+          <div style="flex:1"><div style="font-size:13.5px;color:var(--text);">Invoice <strong>#INV-2408</strong> paid by Acme Corp</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">$24,500 · 5 min ago</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:var(--primary)"></div>
+          <div style="flex:1"><div style="font-size:13.5px;color:var(--text);">New sales order <strong>#SO-1892</strong> created</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">TechSphere Ltd · 12 min ago</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:var(--warn)"></div>
+          <div style="flex:1"><div style="font-size:13.5px;color:var(--text);">Low stock alert: <strong>Samsung 65" QLED</strong></div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">Only 4 units remaining · 28 min ago</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:var(--purple)"></div>
+          <div style="flex:1"><div style="font-size:13.5px;color:var(--text);"><strong>Emily Carter</strong> submitted leave request</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">5 days · Jun 10–14 · 1 hr ago</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:var(--danger)"></div>
+          <div style="flex:1"><div style="font-size:13.5px;color:var(--text);">Purchase request <strong>#PR-447</strong> needs approval</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">IT Dept · $8,200 · 2 hrs ago</div></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:var(--accent)"></div>
+          <div style="flex:1"><div style="font-size:13.5px;color:var(--text);">Vendor <strong>GlobalSupply Co.</strong> onboarded</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">Procurement · 3 hrs ago</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top Customers</div><button class="btn btn-outline btn-sm">View all</button></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Customer</th><th>Revenue</th><th>Orders</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Acme Corporation</strong></td><td>$284,500</td><td>47</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td><strong>TechSphere Ltd</strong></td><td>$198,200</td><td>31</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td><strong>BlueSky Industries</strong></td><td>$156,800</td><td>28</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td><strong>Quantum Dynamics</strong></td><td>$134,100</td><td>22</td><td><span class="badge badge-warn">At Risk</span></td></tr>
+          <tr><td><strong>Vertex Solutions</strong></td><td>$112,400</td><td>19</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td><strong>NovaTech Inc.</strong></td><td>$89,700</td><td>14</td><td><span class="badge badge-gray">Inactive</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FINANCE ========== -->
+<div class="page" id="page-finance">
+  <div class="section-header">
+    <h2>Finance</h2>
+    <button class="btn btn-primary btn-sm">+ New Invoice</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+    <div class="kpi-card blue"><div class="kpi-label">Total Revenue</div><div class="kpi-value">$4.82M</div><div class="kpi-change up">↑ 14.2%</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Accounts Receivable</div><div class="kpi-value">$842K</div><div class="kpi-change up">↑ 3.1%</div></div>
+    <div class="kpi-card danger"><div class="kpi-label">Accounts Payable</div><div class="kpi-value">$312K</div><div class="kpi-change down">↑ 1.8%</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Overdue Invoices</div><div class="kpi-value">$68K</div><div class="kpi-change down">↑ 22% overdue</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Monthly Expenses Breakdown</div></div>
+      <div class="card-body">
+        <div class="chart-h240"><canvas id="expenseChart" role="img" aria-label="Monthly expense breakdown stacked bar chart">Expense breakdown by category over 6 months.</canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Cash Flow</div></div>
+      <div class="card-body">
+        <div class="chart-h240"><canvas id="cashflowChart" role="img" aria-label="Cash flow line chart">Monthly cash flow inflow and outflow comparison.</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Invoice List</div>
+      <div class="filter-row" style="margin:0;gap:8px;">
+        <input class="filter-input" placeholder="Search invoices..." style="width:180px;">
+        <select class="filter-input"><option>All Status</option><option>Paid</option><option>Pending</option><option>Overdue</option></select>
+        <button class="btn btn-outline btn-sm">Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Invoice #</th><th>Customer</th><th>Amount</th><th>Issue Date</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><strong>#INV-2408</strong></td><td>Acme Corporation</td><td>$24,500</td><td>Apr 28, 2026</td><td>May 28, 2026</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2407</strong></td><td>TechSphere Ltd</td><td>$18,200</td><td>Apr 25, 2026</td><td>May 25, 2026</td><td><span class="badge badge-warn">Pending</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2406</strong></td><td>BlueSky Industries</td><td>$31,800</td><td>Apr 10, 2026</td><td>May 10, 2026</td><td><span class="badge badge-danger">Overdue</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2405</strong></td><td>Quantum Dynamics</td><td>$9,400</td><td>Apr 8, 2026</td><td>May 8, 2026</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2404</strong></td><td>Vertex Solutions</td><td>$45,000</td><td>Apr 1, 2026</td><td>May 1, 2026</td><td><span class="badge badge-danger">Overdue</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2403</strong></td><td>NovaTech Inc.</td><td>$12,100</td><td>Mar 28, 2026</td><td>Apr 28, 2026</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2402</strong></td><td>SkyNet Corp</td><td>$7,650</td><td>Mar 20, 2026</td><td>Apr 20, 2026</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#INV-2401</strong></td><td>DataFlow Systems</td><td>$22,300</td><td>Mar 15, 2026</td><td>Apr 15, 2026</td><td><span class="badge badge-danger">Overdue</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ========== SALES ========== -->
+<div class="page" id="page-sales">
+  <div class="section-header">
+    <h2>Sales & CRM</h2>
+    <button class="btn btn-primary btn-sm">+ New Lead</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+    <div class="kpi-card blue"><div class="kpi-label">Pipeline Value</div><div class="kpi-value">$2.14M</div><div class="kpi-change up">↑ 18.4%</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Won This Month</div><div class="kpi-value">$384K</div><div class="kpi-change up">↑ 12%</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Active Leads</div><div class="kpi-value">84</div><div class="kpi-change up">↑ 7 new</div></div>
+    <div class="kpi-card purple"><div class="kpi-label">Avg. Deal Size</div><div class="kpi-value">$18.2K</div><div class="kpi-change up">↑ 4.1%</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'sales-pipeline')">Pipeline</div>
+    <div class="tab" onclick="switchTab(this,'sales-customers')">Customers</div>
+    <div class="tab" onclick="switchTab(this,'sales-orders')">Orders</div>
+  </div>
+
+  <div id="sales-pipeline">
+    <div class="kanban">
+      <div class="kanban-col">
+        <div class="kanban-col-header">Prospecting <span class="count">6</span></div>
+        <div class="kanban-card"><div class="kanban-card-title">Enterprise Cloud Migration</div><div class="kanban-card-sub">SkyNet Corp</div><div class="kanban-card-footer"><span class="badge badge-blue">$120K</span><span style="font-size:11px;color:var(--text3);">Apr 30</span></div></div>
+        <div class="kanban-card"><div class="kanban-card-title">Data Warehouse Setup</div><div class="kanban-card-sub">DataFlow Systems</div><div class="kanban-card-footer"><span class="badge badge-blue">$85K</span><span style="font-size:11px;color:var(--text3);">May 10</span></div></div>
+        <div class="kanban-card"><div class="kanban-card-title">ERP Implementation</div><div class="kanban-card-sub">Pinnacle Group</div><div class="kanban-card-footer"><span class="badge badge-blue">$240K</span><span style="font-size:11px;color:var(--text3);">May 20</span></div></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header">Qualified <span class="count">5</span></div>
+        <div class="kanban-card"><div class="kanban-card-title">Security Audit Suite</div><div class="kanban-card-sub">CyberShield Inc</div><div class="kanban-card-footer"><span class="badge badge-purple">$62K</span><span style="font-size:11px;color:var(--text3);">May 5</span></div></div>
+        <div class="kanban-card"><div class="kanban-card-title">Managed IT Services</div><div class="kanban-card-sub">RetailPro LLC</div><div class="kanban-card-footer"><span class="badge badge-purple">$144K</span><span style="font-size:11px;color:var(--text3);">May 12</span></div></div>
+        <div class="kanban-card"><div class="kanban-card-title">Custom App Development</div><div class="kanban-card-sub">FutureBuild</div><div class="kanban-card-footer"><span class="badge badge-purple">$380K</span><span style="font-size:11px;color:var(--text3);">May 18</span></div></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header">Proposal <span class="count">4</span></div>
+        <div class="kanban-card"><div class="kanban-card-title">Network Infrastructure</div><div class="kanban-card-sub">MegaBuild Corp</div><div class="kanban-card-footer"><span class="badge badge-warn">$198K</span><span style="font-size:11px;color:var(--text3);">May 8</span></div></div>
+        <div class="kanban-card"><div class="kanban-card-title">SaaS Platform License</div><div class="kanban-card-sub">Orion Analytics</div><div class="kanban-card-footer"><span class="badge badge-warn">$94K</span><span style="font-size:11px;color:var(--text3);">May 14</span></div></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header">Negotiation <span class="count">3</span></div>
+        <div class="kanban-card"><div class="kanban-card-title">AI Analytics Platform</div><div class="kanban-card-sub">Acme Corporation</div><div class="kanban-card-footer"><span class="badge badge-green">$310K</span><span style="font-size:11px;color:var(--text3);">May 4</span></div></div>
+        <div class="kanban-card"><div class="kanban-card-title">CRM Integration</div><div class="kanban-card-sub">Vertex Solutions</div><div class="kanban-card-footer"><span class="badge badge-green">$52K</span><span style="font-size:11px;color:var(--text3);">May 6</span></div></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header">Closed Won <span class="count">8</span></div>
+        <div class="kanban-card" style="border-left:3px solid var(--accent);"><div class="kanban-card-title">Cloud ERP Suite</div><div class="kanban-card-sub">TechSphere Ltd</div><div class="kanban-card-footer"><span class="badge badge-green">$428K</span><span style="font-size:11px;color:var(--text3);">Apr 28</span></div></div>
+        <div class="kanban-card" style="border-left:3px solid var(--accent);"><div class="kanban-card-title">Data Center Migration</div><div class="kanban-card-sub">BlueSky Industries</div><div class="kanban-card-footer"><span class="badge badge-green">$285K</span><span style="font-size:11px;color:var(--text3);">Apr 20</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sales-customers" style="display:none;">
+    <div class="table-wrap"><div class="card"><table>
+      <thead><tr><th>Customer</th><th>Industry</th><th>Contact</th><th>Revenue YTD</th><th>Orders</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Acme Corporation</strong></td><td>Manufacturing</td><td>james.k@acme.com</td><td>$284,500</td><td>47</td><td><span class="badge badge-green">Active</span></td></tr>
+        <tr><td><strong>TechSphere Ltd</strong></td><td>Technology</td><td>sarah@techsphere.io</td><td>$198,200</td><td>31</td><td><span class="badge badge-green">Active</span></td></tr>
+        <tr><td><strong>BlueSky Industries</strong></td><td>Logistics</td><td>ops@bluesky.co</td><td>$156,800</td><td>28</td><td><span class="badge badge-green">Active</span></td></tr>
+        <tr><td><strong>Quantum Dynamics</strong></td><td>Aerospace</td><td>cfo@quantum.com</td><td>$134,100</td><td>22</td><td><span class="badge badge-warn">At Risk</span></td></tr>
+        <tr><td><strong>Vertex Solutions</strong></td><td>Consulting</td><td>billing@vertex.net</td><td>$112,400</td><td>19</td><td><span class="badge badge-green">Active</span></td></tr>
+        <tr><td><strong>NovaTech Inc.</strong></td><td>Healthcare</td><td>info@novatech.org</td><td>$89,700</td><td>14</td><td><span class="badge badge-gray">Inactive</span></td></tr>
+        <tr><td><strong>SkyNet Corp</strong></td><td>Telecom</td><td>purchase@skynet.com</td><td>$72,100</td><td>12</td><td><span class="badge badge-green">Active</span></td></tr>
+        <tr><td><strong>DataFlow Systems</strong></td><td>SaaS</td><td>ap@dataflow.io</td><td>$64,800</td><td>11</td><td><span class="badge badge-green">Active</span></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+
+  <div id="sales-orders" style="display:none;">
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>#SO-1892</strong></td><td>TechSphere Ltd</td><td>8</td><td>$18,200</td><td>May 4, 2026</td><td><span class="badge badge-warn">Processing</span></td></tr>
+        <tr><td><strong>#SO-1891</strong></td><td>Acme Corporation</td><td>3</td><td>$6,450</td><td>May 3, 2026</td><td><span class="badge badge-green">Shipped</span></td></tr>
+        <tr><td><strong>#SO-1890</strong></td><td>Vertex Solutions</td><td>12</td><td>$42,100</td><td>May 2, 2026</td><td><span class="badge badge-green">Delivered</span></td></tr>
+        <tr><td><strong>#SO-1889</strong></td><td>BlueSky Industries</td><td>5</td><td>$9,800</td><td>May 1, 2026</td><td><span class="badge badge-green">Delivered</span></td></tr>
+        <tr><td><strong>#SO-1888</strong></td><td>Quantum Dynamics</td><td>2</td><td>$3,200</td><td>Apr 30, 2026</td><td><span class="badge badge-danger">Cancelled</span></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- ========== INVENTORY ========== -->
+<div class="page" id="page-inventory">
+  <div class="section-header">
+    <h2>Inventory Management</h2>
+    <button class="btn btn-primary btn-sm">+ Add Product</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+    <div class="kpi-card blue"><div class="kpi-label">Total SKUs</div><div class="kpi-value">1,284</div><div class="kpi-change up">↑ 24 new</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Inventory Value</div><div class="kpi-value">$2.8M</div><div class="kpi-change up">↑ 3.2%</div></div>
+    <div class="kpi-card danger"><div class="kpi-label">Low Stock Items</div><div class="kpi-value">18</div><div class="kpi-change down">↑ from 12</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Pending Orders</div><div class="kpi-value">47</div><div class="kpi-change up">↓ 3 today</div></div>
+  </div>
+
+  <div style="margin-bottom:16px;padding:14px 18px;background:var(--danger-light);border:1px solid rgba(201,42,42,.2);border-radius:var(--radius);display:flex;align-items:center;gap:12px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span style="font-size:13.5px;color:var(--danger);font-weight:500;">3 critical low-stock alerts: iPhone 15 Pro (3 units), Samsung 65" QLED (4 units), MacBook Air M3 (2 units)</span>
+    <button class="btn btn-outline btn-sm" style="margin-left:auto;">Reorder</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Product Catalog</div>
+      <div class="filter-row" style="margin:0;gap:8px;">
+        <input class="filter-input" placeholder="Search products..." style="width:200px;">
+        <select class="filter-input"><option>All Categories</option><option>Electronics</option><option>Apparel</option><option>Home & Garden</option><option>Software</option></select>
+        <select class="filter-input"><option>All Warehouses</option><option>Warehouse A</option><option>Warehouse B</option><option>Warehouse C</option></select>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>SKU</th><th>Product Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Warehouse</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-4821</span></td><td><strong>iPhone 15 Pro 256GB</strong></td><td>Electronics</td><td>$1,199</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-low" style="width:6%"></div></div><span style="font-size:12px;color:var(--danger);font-weight:600;">3</span></div></td><td>Warehouse A</td><td><span class="badge badge-danger">Critical</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-3812</span></td><td><strong>Samsung 65" QLED 4K TV</strong></td><td>Electronics</td><td>$1,499</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-low" style="width:8%"></div></div><span style="font-size:12px;color:var(--danger);font-weight:600;">4</span></div></td><td>Warehouse B</td><td><span class="badge badge-danger">Critical</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-2244</span></td><td><strong>MacBook Air M3 13"</strong></td><td>Electronics</td><td>$1,299</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-low" style="width:4%"></div></div><span style="font-size:12px;color:var(--danger);font-weight:600;">2</span></div></td><td>Warehouse A</td><td><span class="badge badge-danger">Critical</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-7731</span></td><td><strong>Sony WH-1000XM5 Headphones</strong></td><td>Electronics</td><td>$349</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-med" style="width:30%"></div></div><span style="font-size:12px;color:var(--warn);font-weight:600;">24</span></div></td><td>Warehouse A</td><td><span class="badge badge-warn">Low</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-5519</span></td><td><strong>Nike Air Max 270 (Size 10)</strong></td><td>Apparel</td><td>$150</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-high" style="width:70%"></div></div><span style="font-size:12px;color:var(--accent);font-weight:600;">142</span></div></td><td>Warehouse C</td><td><span class="badge badge-green">In Stock</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-9920</span></td><td><strong>Dell XPS 15 Laptop</strong></td><td>Electronics</td><td>$1,899</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-high" style="width:55%"></div></div><span style="font-size:12px;color:var(--accent);font-weight:600;">88</span></div></td><td>Warehouse B</td><td><span class="badge badge-green">In Stock</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-1173</span></td><td><strong>Dyson V15 Vacuum</strong></td><td>Home & Garden</td><td>$749</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-high" style="width:80%"></div></div><span style="font-size:12px;color:var(--accent);font-weight:600;">204</span></div></td><td>Warehouse C</td><td><span class="badge badge-green">In Stock</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-6642</span></td><td><strong>Adobe CC Annual License</strong></td><td>Software</td><td>$599</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-high" style="width:100%"></div></div><span style="font-size:12px;color:var(--accent);font-weight:600;">∞</span></div></td><td>Digital</td><td><span class="badge badge-green">Available</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-3381</span></td><td><strong>Levi's 501 Original Jeans</strong></td><td>Apparel</td><td>$89</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-high" style="width:65%"></div></div><span style="font-size:12px;color:var(--accent);font-weight:600;">312</span></div></td><td>Warehouse C</td><td><span class="badge badge-green">In Stock</span></td></tr>
+        <tr><td><span style="font-family:var(--mono);font-size:12px;">SKU-8832</span></td><td><strong>Apple AirPods Pro 2nd Gen</strong></td><td>Electronics</td><td>$249</td><td><div class="stock-level"><div class="stock-bar"><div class="stock-fill-med" style="width:18%"></div></div><span style="font-size:12px;color:var(--warn);font-weight:600;">14</span></div></td><td>Warehouse A</td><td><span class="badge badge-warn">Low</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ========== HR ========== -->
+<div class="page" id="page-hr">
+  <div class="section-header">
+    <h2>HR Management</h2>
+    <button class="btn btn-primary btn-sm">+ Add Employee</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+    <div class="kpi-card blue"><div class="kpi-label">Total Employees</div><div class="kpi-value">142</div><div class="kpi-change up">↑ 3 this month</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Present Today</div><div class="kpi-value">128</div><div class="kpi-change up">90.1% attendance</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">On Leave</div><div class="kpi-value">9</div><div class="kpi-change down">5 pending approval</div></div>
+    <div class="kpi-card purple"><div class="kpi-label">Monthly Payroll</div><div class="kpi-value">$742K</div><div class="kpi-change up">↑ 2.1% YoY</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'hr-directory')">Employee Directory</div>
+    <div class="tab" onclick="switchTab(this,'hr-attendance')">Attendance & Leave</div>
+    <div class="tab" onclick="switchTab(this,'hr-payroll')">Payroll</div>
+  </div>
+
+  <div id="hr-directory">
+    <div class="filter-row"><input class="filter-input" placeholder="Search employees..." style="width:220px;"><select class="filter-input"><option>All Departments</option><option>Engineering</option><option>Sales</option><option>Finance</option><option>HR</option><option>Marketing</option></select></div>
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Location</th><th>Joined</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#3b5bdb;">SC</div><div><strong>Sarah Chen</strong><div style="font-size:11px;color:var(--text3);">sarah.c@nexus.com</div></div></div></td><td>Lead Engineer</td><td>Engineering</td><td>San Francisco</td><td>Mar 2022</td><td><span class="status status-active">Active</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#7048e8;">MR</div><div><strong>Marcus Reid</strong><div style="font-size:11px;color:var(--text3);">m.reid@nexus.com</div></div></div></td><td>Sales Manager</td><td>Sales</td><td>New York</td><td>Jun 2021</td><td><span class="status status-active">Active</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#0ca678;">AK</div><div><strong>Amara Kingsley</strong><div style="font-size:11px;color:var(--text3);">a.kingsley@nexus.com</div></div></div></td><td>CFO</td><td>Finance</td><td>Chicago</td><td>Jan 2020</td><td><span class="status status-active">Active</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#e67700;">JP</div><div><strong>James Park</strong><div style="font-size:11px;color:var(--text3);">j.park@nexus.com</div></div></div></td><td>HR Director</td><td>HR</td><td>Austin</td><td>Sep 2021</td><td><span class="status status-active">Active</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#c92a2a;">EL</div><div><strong>Elena Larsson</strong><div style="font-size:11px;color:var(--text3);">e.larsson@nexus.com</div></div></div></td><td>Product Designer</td><td>Engineering</td><td>Remote</td><td>Nov 2022</td><td><span class="status status-pending">On Leave</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#3b5bdb;">DW</div><div><strong>David Wu</strong><div style="font-size:11px;color:var(--text3);">d.wu@nexus.com</div></div></div></td><td>Backend Engineer</td><td>Engineering</td><td>Seattle</td><td>Feb 2023</td><td><span class="status status-active">Active</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#0ca678;">FN</div><div><strong>Fatima Nour</strong><div style="font-size:11px;color:var(--text3);">f.nour@nexus.com</div></div></div></td><td>Marketing Lead</td><td>Marketing</td><td>London</td><td>Apr 2022</td><td><span class="status status-active">Active</span></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="emp-avatar" style="background:#7048e8;">TM</div><div><strong>Tyler Monroe</strong><div style="font-size:11px;color:var(--text3);">t.monroe@nexus.com</div></div></div></td><td>DevOps Engineer</td><td>Engineering</td><td>Remote</td><td>Jul 2023</td><td><span class="status status-active">Active</span></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+
+  <div id="hr-attendance" style="display:none;">
+    <div class="grid-2">
+      <div class="card"><div class="card-header"><div class="card-title">Leave Requests</div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Emily Carter</strong></td><td>Annual</td><td>Jun 10–14</td><td>5</td><td><span class="badge badge-warn">Pending</span></td><td><button class="btn btn-outline btn-sm">Review</button></td></tr>
+            <tr><td><strong>Alex Torres</strong></td><td>Sick</td><td>May 5–6</td><td>2</td><td><span class="badge badge-green">Approved</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+            <tr><td><strong>Elena Larsson</strong></td><td>Maternity</td><td>May 1 – Jul 31</td><td>65</td><td><span class="badge badge-green">Approved</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+            <tr><td><strong>Ben Foster</strong></td><td>Annual</td><td>May 20–22</td><td>3</td><td><span class="badge badge-warn">Pending</span></td><td><button class="btn btn-outline btn-sm">Review</button></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">Attendance Today</div></div>
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
+            <div style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--accent);">128</div><div style="font-size:12px;color:var(--text3);">Present</div></div>
+            <div style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--warn);">9</div><div style="font-size:12px;color:var(--text3);">On Leave</div></div>
+            <div style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--danger);">5</div><div style="font-size:12px;color:var(--text3);">Absent</div></div>
+          </div>
+          <div class="chart-h180"><canvas id="attendanceChart" role="img" aria-label="Weekly attendance chart">Attendance for Mon-Fri this week.</canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hr-payroll" style="display:none;">
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="payroll-card"><div class="payroll-dept">Engineering</div><div class="payroll-amount">$214,800</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">38 employees</div></div>
+      <div class="payroll-card"><div class="payroll-dept">Sales</div><div class="payroll-amount">$168,400</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">28 employees</div></div>
+      <div class="payroll-card"><div class="payroll-dept">Finance</div><div class="payroll-amount">$124,200</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">22 employees</div></div>
+      <div class="payroll-card"><div class="payroll-dept">Marketing</div><div class="payroll-amount">$98,600</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">18 employees</div></div>
+      <div class="payroll-card"><div class="payroll-dept">HR</div><div class="payroll-amount">$76,400</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">14 employees</div></div>
+      <div class="payroll-card"><div class="payroll-dept">Operations</div><div class="payroll-amount">$59,600</div><div style="font-size:12px;color:var(--text3);margin-top:4px;">22 employees</div></div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">Payroll History</div><button class="btn btn-outline btn-sm">Run Payroll</button></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Period</th><th>Employees</th><th>Gross Pay</th><th>Deductions</th><th>Net Pay</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>May 2026</strong></td><td>142</td><td>$782,000</td><td>$40,000</td><td>$742,000</td><td><span class="badge badge-warn">Scheduled</span></td></tr>
+          <tr><td><strong>Apr 2026</strong></td><td>141</td><td>$778,200</td><td>$39,600</td><td>$738,600</td><td><span class="badge badge-green">Processed</span></td></tr>
+          <tr><td><strong>Mar 2026</strong></td><td>139</td><td>$770,800</td><td>$39,200</td><td>$731,600</td><td><span class="badge badge-green">Processed</span></td></tr>
+          <tr><td><strong>Feb 2026</strong></td><td>139</td><td>$770,800</td><td>$39,200</td><td>$731,600</td><td><span class="badge badge-green">Processed</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PROCUREMENT ========== -->
+<div class="page" id="page-procurement">
+  <div class="section-header">
+    <h2>Procurement</h2>
+    <button class="btn btn-primary btn-sm">+ New Purchase Request</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+    <div class="kpi-card blue"><div class="kpi-label">Active Vendors</div><div class="kpi-value">47</div><div class="kpi-change up">↑ 2 new</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Pending Approvals</div><div class="kpi-value">12</div><div class="kpi-change down">↑ from 8</div></div>
+    <div class="kpi-card green"><div class="kpi-label">POs This Month</div><div class="kpi-value">$486K</div><div class="kpi-change up">↑ 6.4%</div></div>
+    <div class="kpi-card purple"><div class="kpi-label">Avg Lead Time</div><div class="kpi-value">8.4d</div><div class="kpi-change up">↓ 1.2d better</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'proc-vendors')">Vendors</div>
+    <div class="tab" onclick="switchTab(this,'proc-requests')">Purchase Requests</div>
+    <div class="tab" onclick="switchTab(this,'proc-orders')">Purchase Orders</div>
+  </div>
+
+  <div id="proc-vendors">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
+      <div class="entity-card"><div class="emp-avatar" style="background:#3b5bdb;width:44px;height:44px;font-size:14px;">GS</div><div class="entity-info"><h4>GlobalSupply Co.</h4><p>Electronics Components · USA</p><div class="entity-meta"><span class="badge badge-green">Active</span><span class="badge badge-blue">Tier 1</span><span style="font-size:12px;color:var(--text3);">⭐ 4.8/5</span></div></div></div>
+      <div class="entity-card"><div class="emp-avatar" style="background:#0ca678;width:44px;height:44px;font-size:14px;">TT</div><div class="entity-info"><h4>TechTrade Asia</h4><p>Consumer Electronics · Singapore</p><div class="entity-meta"><span class="badge badge-green">Active</span><span class="badge badge-blue">Tier 1</span><span style="font-size:12px;color:var(--text3);">⭐ 4.6/5</span></div></div></div>
+      <div class="entity-card"><div class="emp-avatar" style="background:#7048e8;width:44px;height:44px;font-size:14px;">FM</div><div class="entity-info"><h4>FabricMaster Ltd</h4><p>Apparel & Textiles · Bangladesh</p><div class="entity-meta"><span class="badge badge-green">Active</span><span class="badge badge-purple">Tier 2</span><span style="font-size:12px;color:var(--text3);">⭐ 4.3/5</span></div></div></div>
+      <div class="entity-card"><div class="emp-avatar" style="background:#e67700;width:44px;height:44px;font-size:14px;">QP</div><div class="entity-info"><h4>QuickParts Inc</h4><p>Industrial Hardware · Germany</p><div class="entity-meta"><span class="badge badge-warn">Review</span><span class="badge badge-purple">Tier 2</span><span style="font-size:12px;color:var(--text3);">⭐ 3.9/5</span></div></div></div>
+      <div class="entity-card"><div class="emp-avatar" style="background:#c92a2a;width:44px;height:44px;font-size:14px;">SC</div><div class="entity-info"><h4>SoftCore Systems</h4><p>Software Licenses · USA</p><div class="entity-meta"><span class="badge badge-green">Active</span><span class="badge badge-blue">Tier 1</span><span style="font-size:12px;color:var(--text3);">⭐ 4.9/5</span></div></div></div>
+      <div class="entity-card"><div class="emp-avatar" style="background:#3b5bdb;width:44px;height:44px;font-size:14px;">OF</div><div class="entity-info"><h4>OfficeFirst</h4><p>Office Supplies · Canada</p><div class="entity-meta"><span class="badge badge-green">Active</span><span class="badge badge-gray">Tier 3</span><span style="font-size:12px;color:var(--text3);">⭐ 4.1/5</span></div></div></div>
+    </div>
+  </div>
+
+  <div id="proc-requests" style="display:none;">
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>Request #</th><th>Department</th><th>Item</th><th>Qty</th><th>Est. Cost</th><th>Requestor</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><strong>#PR-447</strong></td><td>IT</td><td>MacBook Pro 16" × 4</td><td>4</td><td>$10,400</td><td>Tyler Monroe</td><td><span class="badge badge-danger">High</span></td><td><span class="badge badge-warn">Pending</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm">Approve</button><button class="btn btn-outline btn-sm">Deny</button></div></td></tr>
+        <tr><td><strong>#PR-446</strong></td><td>Marketing</td><td>Adobe CC Licenses × 8</td><td>8</td><td>$4,792</td><td>Fatima Nour</td><td><span class="badge badge-warn">Med</span></td><td><span class="badge badge-warn">Pending</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm">Approve</button><button class="btn btn-outline btn-sm">Deny</button></div></td></tr>
+        <tr><td><strong>#PR-445</strong></td><td>Engineering</td><td>AWS Credits $5K</td><td>1</td><td>$5,000</td><td>Sarah Chen</td><td><span class="badge badge-danger">High</span></td><td><span class="badge badge-green">Approved</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#PR-444</strong></td><td>HR</td><td>Office Chairs × 12</td><td>12</td><td>$3,600</td><td>James Park</td><td><span class="badge badge-gray">Low</span></td><td><span class="badge badge-green">Approved</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+        <tr><td><strong>#PR-443</strong></td><td>Sales</td><td>CRM Software Annual</td><td>1</td><td>$12,000</td><td>Marcus Reid</td><td><span class="badge badge-warn">Med</span></td><td><span class="badge badge-danger">Denied</span></td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+
+  <div id="proc-orders" style="display:none;">
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>PO #</th><th>Vendor</th><th>Items</th><th>Total</th><th>Order Date</th><th>Expected</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>#PO-2208</strong></td><td>GlobalSupply Co.</td><td>iPhone 15 Pro × 50</td><td>$59,950</td><td>May 2, 2026</td><td>May 14, 2026</td><td><span class="badge badge-blue">In Transit</span></td></tr>
+        <tr><td><strong>#PO-2207</strong></td><td>TechTrade Asia</td><td>Samsung TV × 30</td><td>$44,970</td><td>Apr 28, 2026</td><td>May 10, 2026</td><td><span class="badge badge-blue">In Transit</span></td></tr>
+        <tr><td><strong>#PO-2206</strong></td><td>FabricMaster Ltd</td><td>Nike Apparel × 500</td><td>$37,500</td><td>Apr 20, 2026</td><td>May 8, 2026</td><td><span class="badge badge-warn">Customs Hold</span></td></tr>
+        <tr><td><strong>#PO-2205</strong></td><td>OfficeFirst</td><td>Office Supplies</td><td>$4,200</td><td>Apr 18, 2026</td><td>Apr 25, 2026</td><td><span class="badge badge-green">Delivered</span></td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- ========== REPORTS ========== -->
+<div class="page" id="page-reports">
+  <div class="section-header">
+    <h2>Reports & Analytics</h2>
+    <div style="display:flex;gap:8px;">
+      <select class="filter-input"><option>Last 30 Days</option><option>Last Quarter</option><option>YTD</option><option>Custom Range</option></select>
+      <button class="btn btn-primary btn-sm">Export</button>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Revenue Trend (12M)</div></div>
+      <div class="card-body"><div class="chart-h240"><canvas id="revTrendChart" role="img" aria-label="12-month revenue trend line chart">Revenue trend over the last 12 months.</canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Expense by Category</div></div>
+      <div class="card-body"><div class="chart-h240"><canvas id="expCatChart" role="img" aria-label="Expenses by category doughnut chart">Expense distribution by category.</canvas></div></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:20px;">
+    <div class="card"><div class="card-header"><div class="card-title">Top Performing Regions</div></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span style="color:var(--text);">North America</span><strong>$2.1M</strong></div><div class="progress-bar"><div class="progress-fill" style="width:87%;background:var(--primary)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span style="color:var(--text);">Europe</span><strong>$1.4M</strong></div><div class="progress-bar"><div class="progress-fill" style="width:58%;background:var(--accent)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span style="color:var(--text);">Asia Pacific</span><strong>$0.9M</strong></div><div class="progress-bar"><div class="progress-fill" style="width:37%;background:var(--purple)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span style="color:var(--text);">Middle East</span><strong>$0.3M</strong></div><div class="progress-bar"><div class="progress-fill" style="width:12%;background:var(--warn)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span style="color:var(--text);">Latin America</span><strong>$0.12M</strong></div><div class="progress-bar"><div class="progress-fill" style="width:5%;background:var(--danger)"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">Sales Funnel</div></div>
+      <div class="card-body">
+        <div class="chart-h200"><canvas id="funnelChart" role="img" aria-label="Sales funnel horizontal bar chart">Sales funnel from leads to closed deals.</canvas></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">Downloadable Reports</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:10px;width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Annual Financial Report 2025
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:10px;width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Q1 Sales Performance Report
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:10px;width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          Inventory Valuation Report
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:10px;width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          HR Headcount & Payroll Report
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:10px;width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Vendor Performance Report
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SETTINGS ========== -->
+<div class="page" id="page-settings">
+  <div class="section-header"><h2>Settings</h2></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Company Profile</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:5px;">Company Name</label><input class="filter-input" value="NexusERP Technologies Inc." style="width:100%;"></div>
+        <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:5px;">Industry</label><select class="filter-input" style="width:100%;"><option>Technology</option></select></div>
+        <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:5px;">Base Currency</label><select class="filter-input" style="width:100%;"><option>USD — US Dollar</option><option>EUR — Euro</option><option>GBP — British Pound</option></select></div>
+        <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:5px;">Fiscal Year Start</label><select class="filter-input" style="width:100%;"><option>January</option></select></div>
+        <button class="btn btn-primary" style="align-self:flex-start;">Save Changes</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Appearance</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:14px;font-weight:500;color:var(--text);">Dark Mode</div><div style="font-size:12px;color:var(--text3);">Toggle dark/light theme</div></div>
+          <div onclick="toggleDark()" style="width:44px;height:24px;background:var(--primary);border-radius:12px;position:relative;cursor:pointer;"><div id="darkToggleKnob" style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:right .2s;"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:14px;font-weight:500;color:var(--text);">Compact Layout</div><div style="font-size:12px;color:var(--text3);">Reduce spacing for more data</div></div>
+          <div style="width:44px;height:24px;background:var(--surface3);border-radius:12px;position:relative;cursor:pointer;"><div style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:14px;font-weight:500;color:var(--text);">Email Notifications</div><div style="font-size:12px;color:var(--text3);">Receive alerts via email</div></div>
+          <div style="width:44px;height:24px;background:var(--primary);border-radius:12px;position:relative;cursor:pointer;"><div style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:#fff;border-radius:50%;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+let isDark = false;
+let charts = {};
+
+function nav(page, el) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  const titles = {dashboard:'Dashboard',finance:'Finance',sales:'Sales & CRM',inventory:'Inventory',hr:'HR Management',procurement:'Procurement',reports:'Reports & Analytics',settings:'Settings'};
+  document.getElementById('headerTitle').textContent = titles[page] || page;
+  closeSidebar();
+  setTimeout(() => initCharts(page), 50);
+}
+
+function switchTab(el, targetId) {
+  const parent = el.closest('.tabs');
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  // hide siblings
+  const container = parent.nextElementSibling;
+  let sib = container;
+  while (sib) { if (sib.id) sib.style.display = 'none'; sib = sib.nextElementSibling; }
+  const target = document.getElementById(targetId);
+  if (target) { target.style.display = ''; setTimeout(() => initCharts(targetId), 50); }
+}
+
+function toggleNotif() {
+  document.getElementById('notifDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#notifBtn')) document.getElementById('notifDropdown').classList.remove('open');
+});
+
+function toggleDark() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
+  const knob = document.getElementById('darkToggleKnob');
+  if (knob) knob.style.right = isDark ? '2px' : '22px';
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function switchRole(role) {
+  const map = {admin:'JD',manager:'MR',employee:'EC'};
+  document.querySelector('.avatar').textContent = map[role] || 'JD';
+}
+
+const COLORS = {
+  blue: '#3b5bdb', green: '#0ca678', red: '#c92a2a', warn: '#e67700',
+  purple: '#7048e8', gray: '#8b93a8', teal: '#0891b2', pink: '#d6336c'
+};
+
+function getChartDefaults() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)' }, ticks: { color: isDark ? '#8b93a8' : '#98a0b0', font: { family: 'DM Sans', size: 11 } } },
+      y: { grid: { color: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)' }, ticks: { color: isDark ? '#8b93a8' : '#98a0b0', font: { family: 'DM Sans', size: 11 } } }
+    }
+  };
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function initCharts(page) {
+  if (page === 'dashboard' || page === 'page-dashboard') {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    destroyChart('revenueChart');
+    const rc = document.getElementById('revenueChart');
+    if (rc) charts['revenueChart'] = new Chart(rc, { type: 'bar', data: { labels: months, datasets: [
+      { label: 'Revenue', data: [320,380,410,450,390,480,520,490,560,610,580,640], backgroundColor: COLORS.blue + '99', borderColor: COLORS.blue, borderWidth: 2, borderRadius: 5 },
+      { label: 'Expenses', data: [240,270,295,310,280,340,365,350,390,420,400,440], backgroundColor: COLORS.red + '66', borderColor: COLORS.red, borderWidth: 2, borderRadius: 5 }
+    ]}, options: { ...getChartDefaults(), scales: { ...getChartDefaults().scales, y: { ...getChartDefaults().scales.y, ticks: { ...getChartDefaults().scales.y.ticks, callback: v => '$' + v + 'K' } } } } });
+    destroyChart('pieChart');
+    const pc = document.getElementById('pieChart');
+    if (pc) charts['pieChart'] = new Chart(pc, { type: 'doughnut', data: { labels: ['Electronics','Apparel','Home','Software','Other'], datasets: [{ data: [38,22,18,14,8], backgroundColor: [COLORS.blue,COLORS.green,COLORS.purple,COLORS.warn,COLORS.gray], borderWidth: 2, borderColor: isDark ? '#161920' : '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, color: isDark ? '#8b93a8' : '#98a0b0', boxWidth: 10, padding: 10 } } }, cutout: '68%' } });
+  }
+
+  if (page === 'finance' || page === 'page-finance') {
+    const months6 = ['Nov','Dec','Jan','Feb','Mar','Apr'];
+    destroyChart('expenseChart');
+    const ec = document.getElementById('expenseChart');
+    if (ec) charts['expenseChart'] = new Chart(ec, { type: 'bar', data: { labels: months6, datasets: [
+      { label: 'Payroll', data: [720,738,731,732,738,742], backgroundColor: COLORS.blue, borderRadius: 4 },
+      { label: 'Operations', data: [180,192,185,188,192,196], backgroundColor: COLORS.purple, borderRadius: 4 },
+      { label: 'Marketing', data: [82,88,76,84,88,92], backgroundColor: COLORS.green, borderRadius: 4 },
+      { label: 'Other', data: [48,52,44,50,54,56], backgroundColor: COLORS.gray, borderRadius: 4 }
+    ]}, options: { ...getChartDefaults(), plugins: { legend: { display: true, position: 'top', labels: { font: { family: 'DM Sans', size: 11 }, color: isDark ? '#8b93a8' : '#98a0b0', boxWidth: 10 } } }, scales: { ...getChartDefaults().scales, x: { ...getChartDefaults().scales.x, stacked: true }, y: { ...getChartDefaults().scales.y, stacked: true, ticks: { ...getChartDefaults().scales.y.ticks, callback: v => '$' + v + 'K' } } } } });
+    destroyChart('cashflowChart');
+    const cfc = document.getElementById('cashflowChart');
+    if (cfc) charts['cashflowChart'] = new Chart(cfc, { type: 'line', data: { labels: months6, datasets: [
+      { label: 'Inflow', data: [820,890,960,900,1020,1080], borderColor: COLORS.green, backgroundColor: COLORS.green + '20', fill: true, tension: .4, borderWidth: 2 },
+      { label: 'Outflow', data: [760,820,880,840,940,1000], borderColor: COLORS.red, backgroundColor: COLORS.red + '20', fill: true, tension: .4, borderWidth: 2 }
+    ]}, options: { ...getChartDefaults(), plugins: { legend: { display: true, position: 'top', labels: { font: { family: 'DM Sans', size: 11 }, color: isDark ? '#8b93a8' : '#98a0b0', boxWidth: 10 } } }, scales: { ...getChartDefaults().scales, y: { ...getChartDefaults().scales.y, ticks: { ...getChartDefaults().scales.y.ticks, callback: v => '$' + v + 'K' } } } } });
+  }
+
+  if (page === 'hr-attendance') {
+    destroyChart('attendanceChart');
+    const ac = document.getElementById('attendanceChart');
+    if (ac) charts['attendanceChart'] = new Chart(ac, { type: 'bar', data: { labels: ['Mon','Tue','Wed','Thu','Fri'], datasets: [
+      { label: 'Present', data: [132,128,135,129,128], backgroundColor: COLORS.green, borderRadius: 5 },
+      { label: 'Absent', data: [10,14,7,13,14], backgroundColor: COLORS.red + '88', borderRadius: 5 }
+    ]}, options: { ...getChartDefaults(), plugins: { legend: { display: true, position: 'top', labels: { font: { family: 'DM Sans', size: 11 }, color: isDark ? '#8b93a8' : '#98a0b0', boxWidth: 10 } } } } });
+  }
+
+  if (page === 'reports' || page === 'page-reports') {
+    const months12 = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+    destroyChart('revTrendChart');
+    const rtc = document.getElementById('revTrendChart');
+    if (rtc) charts['revTrendChart'] = new Chart(rtc, { type: 'line', data: { labels: months12, datasets: [{ label: 'Revenue', data: [310,390,420,460,400,490,520,510,570,620,590,650], borderColor: COLORS.blue, backgroundColor: COLORS.blue + '18', fill: true, tension: .4, borderWidth: 2.5, pointRadius: 3 }] }, options: { ...getChartDefaults(), scales: { ...getChartDefaults().scales, y: { ...getChartDefaults().scales.y, ticks: { ...getChartDefaults().scales.y.ticks, callback: v => '$' + v + 'K' } } } } });
+    destroyChart('expCatChart');
+    const ecc = document.getElementById('expCatChart');
+    if (ecc) charts['expCatChart'] = new Chart(ecc, { type: 'doughnut', data: { labels: ['Payroll 58%','Operations 15%','Marketing 7%','IT 8%','Facilities 7%','Other 5%'], datasets: [{ data: [58,15,7,8,7,5], backgroundColor: [COLORS.blue,COLORS.purple,COLORS.green,COLORS.warn,COLORS.teal,COLORS.gray], borderWidth: 2, borderColor: isDark ? '#161920' : '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { family: 'DM Sans', size: 11 }, color: isDark ? '#8b93a8' : '#98a0b0', boxWidth: 10, padding: 8 } } }, cutout: '62%' } });
+    destroyChart('funnelChart');
+    const fc = document.getElementById('funnelChart');
+    if (fc) charts['funnelChart'] = new Chart(fc, { type: 'bar', data: { labels: ['Leads','Qualified','Proposal','Negotiation','Closed'], datasets: [{ data: [420,210,124,68,38], backgroundColor: [COLORS.blue + 'cc', COLORS.purple + 'cc', COLORS.warn + 'cc', COLORS.green + 'cc', COLORS.green], borderRadius: 5 }] }, options: { ...getChartDefaults(), indexAxis: 'y', plugins: { legend: { display: false } } } });
+  }
+}
+
+// Init dashboard charts on load
+setTimeout(() => initCharts('dashboard'), 300);
+</script>
+</body>
+</html>
